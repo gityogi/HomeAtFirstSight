@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Mortgage 3D — Twin Block</title>
+  <link rel="stylesheet" href="style.css" />
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <!-- Loader -->
+  <div id="loader">
+    <div class="loader-box">
+      <div class="loader-title">Mortgage 3D</div>
+      <div class="loader-sub">Preparing your block...</div>
+      <div class="loader-bar"><div class="loader-fill"></div></div>
+    </div>
+  </div>
+
+  <!-- 3D Canvas -->
+  <div id="canvas-container"></div>
+
+  <!-- Mobile metrics toggle -->
+  <button class="mobile-metrics-toggle" id="mobileMetricsToggle">📊</button>
+
+  <!-- Mobile metrics panel -->
+  <div class="mobile-metrics-panel" id="mobileMetricsPanel">
+    <div class="mobile-metrics-header">
+      <span>Your savings</span>
+      <button id="closeMobileMetrics">✕</button>
+    </div>
+    <div class="mobile-metric"><span class="mm-label">Monthly</span><span class="mm-val" id="mmPayment">$0</span></div>
+    <div class="mobile-metric"><span class="mm-label">Interest saved</span><span class="mm-val positive" id="mmSaved">$0</span></div>
+    <div class="mobile-metric"><span class="mm-label">Time saved</span><span class="mm-val positive" id="mmTimeSaved">0y</span></div>
+    <div class="mobile-metric"><span class="mm-label">Total interest</span><span class="mm-val" id="mmInterest">$0</span></div>
+    <div class="mobile-metric"><span class="mm-label">Payoff</span><span class="mm-val" id="mmTime">0y</span></div>
+  </div>
+
+  <!-- Main UI -->
+  <div class="ui-overlay">
+    <!-- Left sidebar (desktop) -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h1>Mortgage 3D</h1>
+        <p>Compare strategies side by side</p>
+      </div>
+
+      <div class="strategy-list" id="strategyList">
+        <button class="strategy-tile active" data-strategy="extra">
+          <div class="tile-num">1</div>
+          <div class="tile-body">
+            <div class="tile-name">Extra repayments</div>
+            <div class="tile-desc">Pay more than minimum</div>
+          </div>
+        </button>
+        <button class="strategy-tile" data-strategy="roundup">
+          <div class="tile-num">2</div>
+          <div class="tile-body">
+            <div class="tile-name">Round up</div>
+            <div class="tile-desc">Round $3,247 → $3,300</div>
+          </div>
+        </button>
+        <button class="strategy-tile" data-strategy="fortnightly">
+          <div class="tile-num">3</div>
+          <div class="tile-body">
+            <div class="tile-name">Fortnightly</div>
+            <div class="tile-desc">26 payments/year</div>
+          </div>
+        </button>
+        <button class="strategy-tile" data-strategy="offset">
+          <div class="tile-num">4</div>
+          <div class="tile-body">
+            <div class="tile-name">Offset account</div>
+            <div class="tile-desc">Savings reduce interest</div>
+          </div>
+        </button>
+        <button class="strategy-tile" data-strategy="refinance">
+          <div class="tile-num">5</div>
+          <div class="tile-body">
+            <div class="tile-name">Refinance</div>
+            <div class="tile-desc">Switch to lower rate</div>
+          </div>
+        </button>
+        <button class="strategy-tile" data-strategy="negotiate">
+          <div class="tile-num">6</div>
+          <div class="tile-body">
+            <div class="tile-name">Negotiate</div>
+            <div class="tile-desc">Call bank for discount</div>
+          </div>
+        </button>
+      </div>
+
+      <!-- Desktop metrics -->
+      <div class="desktop-metrics" id="desktopMetrics">
+        <div class="dmetric"><span>Monthly</span><strong id="dPayment">$0</strong></div>
+        <div class="dmetric"><span>Interest saved</span><strong class="positive" id="dSaved">$0</strong></div>
+        <div class="dmetric"><span>Time saved</span><strong class="positive" id="dTimeSaved">0y</strong></div>
+        <div class="dmetric"><span>Total interest</span><strong id="dInterest">$0</strong></div>
+        <div class="dmetric"><span>Payoff</span><strong id="dTime">0y</strong></div>
+      </div>
+    </div>
+
+    <!-- Bottom sheet (mobile + desktop controls) -->
+    <div class="bottom-sheet" id="bottomSheet">
+      <div class="sheet-handle" id="sheetHandle">
+        <div class="handle-bar"></div>
+      </div>
+
+      <!-- Mobile: horizontal strategy strip -->
+      <div class="mobile-strategy-strip" id="mobileStrip">
+        <button class="m-tile active" data-strategy="extra">1</button>
+        <button class="m-tile" data-strategy="roundup">2</button>
+        <button class="m-tile" data-strategy="fortnightly">3</button>
+        <button class="m-tile" data-strategy="offset">4</button>
+        <button class="m-tile" data-strategy="refinance">5</button>
+        <button class="m-tile" data-strategy="negotiate">6</button>
+      </div>
+
+      <div class="sheet-content" id="sheetContent">
+        <div class="loan-inputs">
+          <div class="input-group">
+            <label>Loan</label>
+            <input type="number" id="inputPrincipal" value="600000" step="10000" />
+          </div>
+          <div class="input-group">
+            <label>Rate %</label>
+            <input type="number" id="inputRate" value="6.5" step="0.05" />
+          </div>
+          <div class="input-group">
+            <label>Years</label>
+            <input type="number" id="inputYears" value="30" step="1" min="1" max="50" />
+          </div>
+        </div>
+
+        <div class="strategy-control" id="strategyControl">
+          <label>Extra payment per month</label>
+          <div class="slider-wrap">
+            <input type="range" id="sliderExtra" min="0" max="5000" step="50" value="500" />
+            <span class="slider-val" id="valExtra">$500</span>
+          </div>
+        </div>
+
+        <div class="milestone-track">
+          <div class="milestone" id="msSlab"><span>Slab</span></div>
+          <div class="milestone" id="msFrame"><span>Frame</span></div>
+          <div class="milestone" id="msRoof"><span>Roof</span></div>
+          <div class="milestone" id="msLockup"><span>Lock-up</span></div>
+          <div class="milestone" id="msWindows"><span>Windows</span></div>
+          <div class="milestone" id="msFitout"><span>Fit-out</span></div>
+          <div class="milestone" id="msComplete"><span>Done</span></div>
+        </div>
+
+        <div class="timeline-row">
+          <button class="play-btn" id="playBtn">▶</button>
+          <div class="timeline-info">
+            <span id="yearLabel">Year 0 of 30</span>
+            <span id="phaseLabel">Slab</span>
+          </div>
+          <span class="ahead-label" id="aheadLabel"></span>
+        </div>
+        <input type="range" id="timeline" min="0" max="100" step="0.2" value="0" class="timeline-slider" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
