@@ -1,0 +1,256 @@
+/* ============================================================
+   SMART GOAL — gold section styles (Mortgage 3D: Twin Block)
+   Link from index.html:  <link rel="stylesheet" href="goal.css" />
+   ============================================================ */
+
+/* Anchor for the timeline flag (absolute positioning) */
+.sheet-content {
+  position: relative;
+}
+
+/* ---------- Gold Smart Goal card ---------- */
+.goal-section {
+  margin: 0 0 14px;
+  padding: 14px;
+  border-radius: 14px;
+  background: linear-gradient(160deg, rgba(50, 38, 5, 0.75), rgba(20, 16, 4, 0.85));
+  border: 1px solid rgba(255, 196, 0, 0.35);
+  box-shadow: 0 0 24px rgba(255, 196, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.goal-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  color: #ffc400;
+  letter-spacing: 0.03em;
+  margin-bottom: 10px;
+  font-size: 0.95rem;
+}
+
+.goal-tag {
+  margin-left: auto;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 20px;
+  background: rgba(255, 196, 0, 0.15);
+  border: 1px solid rgba(255, 196, 0, 0.4);
+  color: #ffd75e;
+}
+
+.goal-row {
+  margin-bottom: 10px;
+}
+
+.goal-row label {
+  display: block;
+  font-size: 0.72rem;
+  color: #cbd5e1;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.goal-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.goal-chip {
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #e2e8f0;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.goal-chip:hover {
+  border-color: rgba(255, 196, 0, 0.5);
+}
+
+.goal-chip.active {
+  background: rgba(255, 196, 0, 0.18);
+  border-color: #ffc400;
+  color: #ffd75e;
+  font-weight: 700;
+}
+
+.goal-result {
+  border-top: 1px dashed rgba(255, 196, 0, 0.3);
+  padding-top: 10px;
+}
+
+.goal-suggest {
+  font-size: 1.15rem;
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.goal-suggest b {
+  color: #ffc400;
+}
+
+.goal-status {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  margin: 4px 0 10px;
+  line-height: 1.5;
+}
+
+.goal-status b {
+  color: #e2e8f0;
+}
+
+.goal-apply {
+  width: 100%;
+  padding: 9px 12px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: #1a1405;
+  background: linear-gradient(135deg, #ffd75e, #ffb300);
+  box-shadow: 0 4px 14px rgba(255, 179, 0, 0.35);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.goal-apply:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(255, 179, 0, 0.5);
+}
+
+/* ---------- Milestone track: gold diamond ---------- */
+.milestone-track {
+  position: relative;
+}
+
+.goal-ms-marker {
+  position: absolute;
+  top: -7px;
+  width: 12px;
+  height: 12px;
+  background: #ffc400;
+  transform: rotate(45deg);
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 2;
+  animation: goalPulse 2s infinite;
+}
+
+@keyframes goalPulse {
+  0%, 100% { box-shadow: 0 0 6px rgba(255, 196, 0, 0.6); }
+  50%      { box-shadow: 0 0 16px rgba(255, 196, 0, 1); }
+}
+
+/* ---------- Timeline flag (click to jump) ---------- */
+.goal-flag {
+  position: absolute;
+  cursor: pointer;
+  z-index: 6;
+  text-align: center;
+  transform: translateX(-50%);
+}
+
+.goal-flag .gf-label {
+  display: block;
+  font-size: 0.75rem;
+  color: #ffc400;
+  font-weight: 700;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.7));
+}
+
+.goal-flag .gf-bar {
+  display: block;
+  width: 2px;
+  height: 12px;
+  background: #ffc400;
+  margin: 0 auto;
+  box-shadow: 0 0 8px rgba(255, 196, 0, 0.9);
+}
+
+/* ---------- Metrics: gold goal row ---------- */
+.goal-metric {
+  border-left: 3px solid #ffc400;
+  background: rgba(255, 196, 0, 0.06);
+  padding-left: 8px;
+  border-radius: 6px;
+}
+
+.goal-metric strong,
+.goal-metric .mm-val {
+  color: #ffd75e;
+}
+
+/* ---------- 3D floating goal label ---------- */
+.goal-3d-label {
+  position: fixed;
+  pointer-events: none;
+  z-index: 5;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #ffd75e;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid #ffc400;
+  padding: 4px 10px;
+  border-radius: 10px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 0 16px rgba(255, 196, 0, 0.25);
+  white-space: nowrap;
+  transform: translate(-50%, -130%);
+}
+
+/* ---------- Goal track (timeline flag container) ---------- */
+.goal-track {
+  position: relative;
+  height: 18px;
+  margin-bottom: 4px;
+}
+/* ---------- Goal comparison grid ---------- */
+.goal-comparison {
+  margin: 10px 0 12px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 196, 0, 0.12);
+}
+
+.gc-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  font-size: 0.78rem;
+}
+
+.gc-label {
+  color: #94a3b8;
+}
+
+.gc-val {
+  font-weight: 600;
+  color: #e2e8f0;
+  font-variant-numeric: tabular-nums;
+}
+
+.gc-highlight {
+  color: #ffd75e;
+}
+
+.gc-saved {
+  color: #34d399;
+  font-weight: 700;
+}
+
+.gc-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+  margin: 6px 0;
+}

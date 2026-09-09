@@ -237,6 +237,82 @@ body {
 
 .sheet-content { padding-bottom: 4px; }
 
+/* Graph widget toggle */
+.graph-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 0;
+  margin-top: 4px;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.graph-toggle:hover { color: #f1f5f9; }
+.gt-icon {
+  display: inline-block;
+  transition: transform 0.3s ease;
+  font-size: 0.7rem;
+}
+.graph-toggle[aria-expanded="true"] .gt-icon {
+  transform: rotate(90deg);
+}
+
+/* Graph widget */
+.graph-widget {
+  max-height: 500px;
+  opacity: 1;
+  overflow: hidden;
+  transition: max-height 0.35s ease, opacity 0.25s ease, padding 0.35s ease;
+  padding-top: 8px;
+}
+.graph-widget.collapsed {
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0;
+}
+
+/* Goal widget toggle */
+.goal-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 0;
+  margin-top: 4px;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.goal-toggle:hover { color: #f1f5f9; }
+.goal-toggle[aria-expanded="true"] .gt-icon {
+  transform: rotate(90deg);
+}
+
+/* Goal widget */
+.goal-widget {
+  max-height: 800px;
+  opacity: 1;
+  overflow: hidden;
+  transition: max-height 0.35s ease, opacity 0.25s ease, padding 0.35s ease;
+}
+.goal-widget.collapsed {
+  max-height: 0;
+  opacity: 0;
+  padding: 0;
+}
+
 /* Loan inputs */
 .loan-inputs {
   display: grid;
@@ -304,38 +380,6 @@ body {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
-
-/* Milestone track */
-.milestone-track {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 12px;
-}
-.milestone {
-  flex: 1;
-  text-align: center;
-  padding: 6px 2px;
-  border-radius: 6px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.05);
-  transition: all 0.3s ease;
-}
-.milestone span {
-  font-size: 0.62rem;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
-.milestone.active {
-  background: rgba(0, 212, 255, 0.12);
-  border-color: #00d4ff;
-}
-.milestone.active span { color: #00d4ff; font-weight: 600; }
-.milestone.past {
-  background: rgba(16, 185, 129, 0.08);
-  border-color: rgba(16, 185, 129, 0.2);
-}
-.milestone.past span { color: #34d399; }
 
 /* Timeline */
 .timeline-row {

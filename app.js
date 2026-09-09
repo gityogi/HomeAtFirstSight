@@ -53,6 +53,8 @@ const state = {
   strategy: 'extra', extra: 500, newRate: 5.5,
   baseline: null, strategyResult: null,
   isPlaying: false, playStart: 0, playDuration: 6000,
+  timeline: 0,
+  goalYears: 30,
 };
 
 const COMING_SOON = ['roundup', 'offset', 'negotiate'];
@@ -310,6 +312,7 @@ scene.add(gapPillarR);
 // Floating labels
 const labelBase = document.createElement('div');
 labelBase.className = 'house-label';
+labelBase.style.cursor = 'pointer';
 labelBase.innerHTML = `
   <div class="hl-badge" style="border-color:#f59e0b;">
     <div class="hl-title" style="color:#f59e0b">Without strategy</div>
@@ -321,6 +324,7 @@ document.body.appendChild(labelBase);
 
 const labelStrat = document.createElement('div');
 labelStrat.className = 'house-label';
+labelStrat.style.cursor = 'pointer';
 labelStrat.innerHTML = `
   <div class="hl-badge" style="border-color:#00d4ff;">
     <div class="hl-title" style="color:#00d4ff">With extra $500/mo</div>
@@ -330,19 +334,40 @@ labelStrat.innerHTML = `
 `;
 document.body.appendChild(labelStrat);
 
+// Make labels clickable
+labelBase.addEventListener('click', (e) => {
+  e.stopPropagation();
+  showDataModal('baseline');
+});
+
+labelStrat.addEventListener('click', (e) => {
+  e.stopPropagation();
+  showDataModal('strategy');
+});
+
 const gapLabel = document.createElement('div');
 gapLabel.className = 'gap-label';
 gapLabel.id = 'gapLabel';
 document.body.appendChild(gapLabel);
 
+const goalLabel = document.createElement('div');
+goalLabel.className = 'goal-3d-label';
+goalLabel.style.display = 'none';
+document.body.appendChild(goalLabel);
+
 const labelStyle = document.createElement('style');
 labelStyle.textContent = `
 .house-label {
   position: fixed;
-  pointer-events: none;
+  pointer-events: auto;
   text-align: center;
   z-index: 5;
-  transition: opacity 0.3s;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+.house-label:hover .hl-badge {
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 24px rgba(255, 255, 255, 0.15);
+  transform: scale(1.05);
 }
 .house-label .hl-badge {
   display: inline-block;
@@ -352,6 +377,7 @@ labelStyle.textContent = `
   backdrop-filter: blur(8px);
   border: 2px solid;
   box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  transition: all 0.3s ease;
 }
 .house-label .hl-title {
   font-size: 1.1rem;
@@ -380,20 +406,25 @@ labelStyle.textContent = `
   pointer-events: none;
   text-align: center;
   z-index: 5;
-  font-size: 0.9rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: #34d399;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.6);
-  background: rgba(15, 23, 42, 0.85);
-  backdrop-filter: blur(8px);
-  padding: 8px 16px;
-  border-radius: 12px;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.7);
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 12px 24px;
+  border-radius: 14px;
   border: 2px solid #34d399;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.4), 0 0 20px rgba(52, 211, 153, 0.15);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 30px rgba(52, 211, 153, 0.25);
   opacity: 0;
-  transition: opacity 0.3s;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  transform: scale(0.95);
 }
-.gap-label.visible { opacity: 1; }
+.gap-label.visible { 
+  opacity: 1;
+  transform: scale(1);
+}
 `;
 document.head.appendChild(labelStyle);
 
@@ -422,6 +453,16 @@ function updateLabels() {
     gapLabel.classList.add('visible');
   } else {
     gapLabel.classList.remove('visible');
+  }
+
+  // Position 3D goal label above strategy house
+  if (state.goalYears < state.years) {
+    v.set(12, stratClip.constant + 1.2, 0); v.project(camera);
+    goalLabel.style.left = (v.x * hw + hw) + 'px';
+    goalLabel.style.top = (-v.y * hh + hh) + 'px';
+    goalLabel.style.display = v.z < 1 ? 'block' : 'none';
+  } else {
+    goalLabel.style.display = 'none';
   }
 }
 
@@ -491,7 +532,7 @@ function onMouseMove(e) {
       const isStrat = strategyHouse.parts.includes(mesh);
       const houseName = isStrat ? 'Strategy house' : 'Baseline house';
       const color = isStrat ? '#00d4ff' : '#f59e0b';
-      tooltip.innerHTML = `<strong>${mesh.userData.name}</strong><br><span style="color:#94a3b8;font-size:0.75rem">${mesh.userData.milestone}</span><br><span style="color:${color};font-size:0.7rem;margin-top:2px;display:block">${houseName}</span>`;
+      tooltip.innerHTML = `<strong>${mesh.userData.name}</strong><br><span style="color:${color};font-size:0.75rem;margin-top:3px;display:block">${houseName}</span>`;
       tooltip.style.opacity = '1';
     }
     tooltip.style.left = (e.clientX + 15) + 'px';
@@ -510,12 +551,11 @@ window.addEventListener('mousemove', onMouseMove);
 const elPrincipal = document.getElementById('inputPrincipal');
 const elRate = document.getElementById('inputRate');
 const elYears = document.getElementById('inputYears');
-const elSliderExtra = document.getElementById('sliderExtra');
-const elValExtra = document.getElementById('valExtra');
+let elSliderExtra = document.getElementById('sliderExtra');
+let elValExtra = document.getElementById('valExtra');
 const elStrategyControl = document.getElementById('strategyControl');
 const elTimeline = document.getElementById('timeline');
 const elYearLabel = document.getElementById('yearLabel');
-const elPhaseLabel = document.getElementById('phaseLabel');
 const elAheadLabel = document.getElementById('aheadLabel');
 const elPlayBtn = document.getElementById('playBtn');
 const elToast = document.getElementById('toast');
@@ -527,53 +567,178 @@ const elSheetHandle = document.getElementById('sheetHandle');
 const elMobileMetricsToggle = document.getElementById('mobileMetricsToggle');
 const elMobileMetricsPanel = document.getElementById('mobileMetricsPanel');
 const elCloseMobileMetrics = document.getElementById('closeMobileMetrics');
+const elDataModal = document.getElementById('dataModal');
+const elCloseDataModal = document.getElementById('closeDataModal');
+const elTableToggle = document.getElementById('tableToggle');
+const elMilestoneInfo = document.getElementById('milestoneInfo');
+const elGraphToggle = document.getElementById('graphToggle');
+const elGraphWidget = document.getElementById('graphWidget');
+const elGtIcon = document.getElementById('gtIcon');
+const elGtLabel = document.getElementById('gtLabel');
+const elGoalToggle = document.getElementById('goalToggle');
+const elGoalWidget = document.getElementById('goalWidget');
+const elGoalToggleIcon = document.getElementById('goalToggleIcon');
+const elGoalToggleLabel = document.getElementById('goalToggleLabel');
 
-const milestones = {
-  slab: document.getElementById('msSlab'),
-  frame: document.getElementById('msFrame'),
-  roof: document.getElementById('msRoof'),
-  lockup: document.getElementById('msLockup'),
-  windows: document.getElementById('msWindows'),
-  fitout: document.getElementById('msFitout'),
-  complete: document.getElementById('msComplete')
-};
+// Goal UI references
+const elGoalSection = document.getElementById('goalSection');
+const elGoalChips = document.getElementById('goalChips');
+const elGoalSuggest = document.getElementById('goalSuggest');
+const elGoalStatus = document.getElementById('goalStatus');
+const elGoalApply = document.getElementById('goalApply');
+const elGoalTrack = document.getElementById('goalTrack');
+const elGoalFlag = document.getElementById('goalFlag');
+const elGfLabel = document.getElementById('gfLabel');
+const elGoalMsMarker = document.getElementById('goalMsMarker');
+const elGoalComparison = document.getElementById('goalComparison');
+const elGcBaseMonthly = document.getElementById('gcBaseMonthly');
+const elGcGoalMonthly = document.getElementById('gcGoalMonthly');
+const elGcExtraNeeded = document.getElementById('gcExtraNeeded');
+const elGcBaseInterest = document.getElementById('gcBaseInterest');
+const elGcGoalInterest = document.getElementById('gcGoalInterest');
+const elGcInterestSaved = document.getElementById('gcInterestSaved');
+const elGcTimeSaved = document.getElementById('gcTimeSaved');
+const elGcTotalPaid = document.getElementById('gcTotalPaid');
 
-// ==================== MILESTONE LOGIC ====================
+// ==================== INITIALIZE MILESTONE BAR ====================
 
-const PHASES = [
-  { name: 'Slab', min: 0, max: 0.5, key: 'slab' },
-  { name: 'Frame', min: 0.5, max: 2.5, key: 'frame' },
-  { name: 'Roof', min: 2.5, max: 4.5, key: 'roof' },
-  { name: 'Lock-up', min: 4.5, max: 5.5, key: 'lockup' },
-  { name: 'Windows', min: 5.5, max: 6.0, key: 'windows' },
-  { name: 'Fit-out', min: 6.0, max: 7.0, key: 'fitout' },
-  { name: 'Complete', min: 7.0, max: 8.5, key: 'complete' }
-];
-
-function getPhase(height) {
-  for (const p of PHASES) {
-    if (height >= p.min && height < p.max) return p;
+function initMilestoneBar() {
+  const slotsContainer = document.getElementById('milestoneSlots');
+  slotsContainer.innerHTML = '';
+  
+  for (let i = 1; i <= 10; i++) {
+    const percentage = i * 10;
+    const slot = document.createElement('div');
+    slot.className = 'milestone-slot';
+    slot.innerHTML = `<span>${percentage}%</span><div class="milestone-slot-fill"></div>`;
+    slot.dataset.milestone = percentage;
+    
+    slot.addEventListener('click', () => {
+      // Navigate to this milestone
+      const timelineValue = (percentage / 100) * 100;
+      elTimeline.value = timelineValue;
+      state.timeline = timelineValue;
+      updateHouseFromTimeline();
+      updateMilestoneInfo();
+    });
+    
+    slotsContainer.appendChild(slot);
   }
-  return PHASES[PHASES.length - 1];
-}
-
-function updateMilestones(baseH, stratH) {
-  Object.values(milestones).forEach(m => { m.classList.remove('active', 'past'); });
-  const sp = getPhase(stratH);
-  PHASES.forEach(p => {
-    const el = milestones[p.key];
-    if (p === sp) el.classList.add('active');
-    else if (stratH >= p.max) el.classList.add('past');
-  });
 }
 
 // ==================== UPDATE LOGIC ====================
 
+function computeGoalPayment(goalYears) {
+  const r = state.rate / 100 / 12;
+  const n = goalYears * 12;
+  if (n <= 0 || state.principal <= 0) return { requiredMonthly: 0, extraNeeded: 0, baseMonthly: 0 };
+  let requiredMonthly;
+  if (r === 0) {
+    requiredMonthly = state.principal / n;
+  } else {
+    requiredMonthly = state.principal * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+  }
+  const baseMonthly = state.baseline?.baseMonthly ?? pmt(state.principal, state.rate, state.years);
+  return {
+    requiredMonthly: Math.round(requiredMonthly),
+    extraNeeded: Math.round(requiredMonthly - baseMonthly),
+    baseMonthly: Math.round(baseMonthly)
+  };
+}
+
+function updateGoalUI() {
+  if (!elGoalSection) return;
+
+  const goalYears = state.goalYears;
+  const baseMonthly = state.baseline?.baseMonthly ?? pmt(state.principal, state.rate, state.years);
+
+  // Update chips active state
+  elGoalChips.querySelectorAll('.goal-chip').forEach(chip => {
+    const chipYears = chip.dataset.years === 'original' ? state.years : Number(chip.dataset.years);
+    chip.classList.toggle('active', chipYears === goalYears);
+  });
+
+  if (goalYears >= state.years) {
+    elGoalSuggest.innerHTML = `${fmt$(baseMonthly)}<span>/mo</span>`;
+    elGoalStatus.innerHTML = `Baseline payment over <b>${state.years} years</b>. Select a shorter term to set a goal.`;
+    elGoalApply.disabled = true;
+    elGoalApply.style.opacity = '0.5';
+    elGoalApply.style.cursor = 'not-allowed';
+    elGoalFlag.style.display = 'none';
+    elGoalMsMarker.style.display = 'none';
+    goalLabel.style.display = 'none';
+    if (elGoalComparison) elGoalComparison.style.display = 'none';
+    return;
+  }
+
+  const { requiredMonthly, extraNeeded } = computeGoalPayment(goalYears);
+  const currentMonths = state.strategyResult?.months ?? (state.years * 12);
+
+  elGoalSuggest.innerHTML = `${fmt$(requiredMonthly)}<span>/mo</span>`;
+
+  if (currentMonths <= goalYears * 12 + 1) {
+    elGoalStatus.innerHTML = `🎉 Your current strategy pays off in <b>${fmtYM(currentMonths)}</b>. Goal already reached!`;
+    elGoalApply.disabled = true;
+    elGoalApply.style.opacity = '0.5';
+    elGoalApply.style.cursor = 'not-allowed';
+    if (elGoalComparison) elGoalComparison.style.display = 'none';
+  } else if (extraNeeded <= 0) {
+    elGoalStatus.innerHTML = `Your current strategy already meets this goal.`;
+    elGoalApply.disabled = true;
+    elGoalApply.style.opacity = '0.5';
+    elGoalApply.style.cursor = 'not-allowed';
+    if (elGoalComparison) elGoalComparison.style.display = 'none';
+  } else {
+    const goalResult = amortize(state.principal, state.rate, state.years, extraNeeded);
+    const interestSaved = state.baseline.totalInterest - goalResult.totalInterest;
+    const timeSavedMonths = (state.years * 12) - goalResult.months;
+    const totalPaid = requiredMonthly * goalResult.months;
+
+    elGoalStatus.innerHTML = `Add <b>${fmt$(extraNeeded)}/mo</b> extra. Saves <b>${fmt$(interestSaved)}</b> interest vs baseline.`;
+    elGoalApply.disabled = false;
+    elGoalApply.style.opacity = '1';
+    elGoalApply.style.cursor = 'pointer';
+
+    // Populate comparison grid
+    if (elGoalComparison) {
+      elGoalComparison.style.display = 'block';
+      elGcBaseMonthly.textContent = fmt$(baseMonthly);
+      elGcGoalMonthly.textContent = fmt$(requiredMonthly);
+      elGcExtraNeeded.textContent = fmt$(extraNeeded);
+      elGcBaseInterest.textContent = fmt$(state.baseline.totalInterest);
+      elGcGoalInterest.textContent = fmt$(goalResult.totalInterest);
+      elGcInterestSaved.textContent = fmt$(interestSaved);
+      elGcTimeSaved.textContent = fmtYM(timeSavedMonths);
+      elGcTotalPaid.textContent = fmt$(totalPaid);
+    }
+  }
+
+  // Position timeline flag
+  const pct = (goalYears / state.years) * 100;
+  elGoalFlag.style.display = 'block';
+  elGoalFlag.style.left = `${pct}%`;
+  elGfLabel.textContent = `${goalYears}y`;
+
+  // Position milestone marker
+  elGoalMsMarker.style.display = 'block';
+  elGoalMsMarker.style.left = `${pct}%`;
+
+  // Update 3D goal label
+  goalLabel.textContent = `🎯 ${goalYears}y goal`;
+  goalLabel.style.display = 'block';
+}
+
 function updateCalculations() {
+  const prevYears = state.years;
   state.principal = Number(elPrincipal.value) || 600000;
   state.rate = Number(elRate.value) || 6.5;
   state.years = Number(elYears.value) || 30;
   state.extra = Number(elSliderExtra?.value) || 0;
+
+  // Keep goal in sync if it was tied to previous original term
+  if (state.goalYears === prevYears) {
+    state.goalYears = state.years;
+  }
 
   state.baseline = amortize(state.principal, state.rate, state.years);
 
@@ -589,11 +754,13 @@ function updateCalculations() {
 
   updateMetrics();
   updateHouseFromTimeline();
+  updateGoalUI();
 }
 
 function updateMetrics() {
   const base = state.baseline;
   const strat = state.strategyResult;
+  if (!base || !strat) return;
 
   const ids = [
     ['dPayment', 'mmPayment', strat.effectiveMonthly],
@@ -620,6 +787,137 @@ function updateMetrics() {
   const mTimeSaved = document.getElementById('mmTimeSaved');
   if (dTimeSaved) dTimeSaved.textContent = fmtYM(timeSaved);
   if (mTimeSaved) mTimeSaved.textContent = fmtYM(timeSaved);
+
+  // Update data table
+  updateDataTable();
+}
+
+function updateDataTable() {
+  const base = state.baseline;
+  const strat = state.strategyResult;
+
+  const baseTotal = state.principal + base.totalInterest;
+  const stratTotal = state.principal + strat.totalInterest;
+  const totalDiff = baseTotal - stratTotal;
+
+  document.getElementById('tbl-base-monthly').textContent = fmt$(base.effectiveMonthly);
+  document.getElementById('tbl-strat-monthly').textContent = fmt$(strat.effectiveMonthly);
+  document.getElementById('tbl-diff-monthly').textContent = fmt$(strat.effectiveMonthly - base.effectiveMonthly);
+
+  document.getElementById('tbl-base-interest').textContent = fmt$(base.totalInterest);
+  document.getElementById('tbl-strat-interest').textContent = fmt$(strat.totalInterest);
+  document.getElementById('tbl-diff-interest').textContent = fmt$(base.totalInterest - strat.totalInterest);
+
+  document.getElementById('tbl-base-time').textContent = fmtYM(base.months);
+  document.getElementById('tbl-strat-time').textContent = fmtYM(strat.months);
+  document.getElementById('tbl-diff-time').textContent = fmtYM(base.months - strat.months);
+
+  document.getElementById('tbl-base-total').textContent = fmt$(baseTotal);
+  document.getElementById('tbl-strat-total').textContent = fmt$(stratTotal);
+  document.getElementById('tbl-diff-total').textContent = fmt$(totalDiff);
+
+  updateMilestoneInfo();
+  
+  // If modal is open, update the active house data
+  if (elDataModal.classList.contains('visible')) {
+    const activeHouse = elDataModal.dataset.activeHouse || 'strategy';
+    updateMilestoneDataForHouse(activeHouse);
+  }
+}
+
+function updateMilestoneInfo() {
+  const strat = state.strategyResult;
+  const timelinePct = Number(elTimeline.value) / 100;
+  const currentYear = timelinePct * state.years;
+  const currentMonth = Math.round(currentYear * 12);
+  
+  const stratBal = balAt(strat.schedule, currentMonth);
+  const currentPaidPct = Math.round(Math.max(0, (state.principal - stratBal) / state.principal) * 100);
+  
+  // Update milestone label
+  const milestoneText = `Milestone: ${currentPaidPct}% — ${fmt$((currentPaidPct / 100) * state.principal)}`;
+  document.getElementById('milestoneLabel').textContent = milestoneText;
+  
+  // Update milestone slots
+  const slots = document.querySelectorAll('.milestone-slot');
+  slots.forEach(slot => {
+    const slotPct = parseInt(slot.dataset.milestone);
+    slot.classList.remove('active', 'passed');
+    
+    if (slotPct === Math.floor(currentPaidPct / 10) * 10) {
+      slot.classList.add('active');
+    } else if (slotPct < currentPaidPct) {
+      slot.classList.add('passed');
+    }
+    
+    // Update fill bar
+    const fillBar = slot.querySelector('.milestone-slot-fill');
+    if (slotPct <= currentPaidPct) {
+      fillBar.style.width = '100%';
+    } else {
+      const progressInSlot = Math.max(0, (currentPaidPct - (slotPct - 10)) / 10);
+      fillBar.style.width = (progressInSlot * 100) + '%';
+    }
+  });
+  
+  // Update data table milestone info
+  const nextMilestone = Math.ceil(currentPaidPct / 10) * 10;
+  const pctToNext = Math.max(0, nextMilestone - currentPaidPct);
+  const principalToNext = Math.round((pctToNext / 100) * state.principal);
+  
+  document.getElementById('tbl-current-milestone').textContent = `${currentPaidPct}%`;
+  document.getElementById('tbl-principal-paid').textContent = fmt$((currentPaidPct / 100) * state.principal);
+  document.getElementById('tbl-milestone-time').textContent = fmtYM(currentMonth);
+  document.getElementById('tbl-to-next').textContent = fmt$(principalToNext);
+}
+
+function showDataModal(houseType = 'strategy') {
+  const isBaseline = houseType === 'baseline';
+  const data = isBaseline ? state.baseline : state.strategyResult;
+  
+  // Update modal title
+  const title = isBaseline 
+    ? 'Baseline Mortgage Analysis' 
+    : 'Strategy Mortgage Analysis';
+  document.querySelector('.data-modal-header h2').textContent = title;
+  
+  elDataModal.classList.add('visible');
+  
+  // Highlight the appropriate house label
+  labelBase.style.opacity = isBaseline ? '1' : '0.5';
+  labelStrat.style.opacity = isBaseline ? '0.5' : '1';
+  
+  // Update which comparison we're showing
+  elDataModal.dataset.activeHouse = houseType;
+  updateMilestoneDataForHouse(houseType);
+}
+
+function updateMilestoneDataForHouse(houseType) {
+  const isBaseline = houseType === 'baseline';
+  const data = isBaseline ? state.baseline : state.strategyResult;
+  
+  const timelinePct = Number(elTimeline.value) / 100;
+  const currentYear = timelinePct * state.years;
+  const currentMonth = Math.round(currentYear * 12);
+  
+  const bal = balAt(data.schedule, currentMonth);
+  const currentPaidPct = Math.round(Math.max(0, (state.principal - bal) / state.principal) * 100);
+  const currentPrincipalPaid = Math.round((currentPaidPct / 100) * state.principal);
+  
+  const nextMilestone = Math.ceil(currentPaidPct / 10) * 10;
+  const pctToNext = Math.max(0, nextMilestone - currentPaidPct);
+  const principalToNext = Math.round((pctToNext / 100) * state.principal);
+  
+  document.getElementById('tbl-current-milestone').textContent = `${currentPaidPct}%`;
+  document.getElementById('tbl-principal-paid').textContent = fmt$(currentPrincipalPaid);
+  document.getElementById('tbl-milestone-time').textContent = fmtYM(currentMonth);
+  document.getElementById('tbl-to-next').textContent = fmt$(principalToNext);
+}
+
+function closeDataModal() {
+  elDataModal.classList.remove('visible');
+  labelBase.style.opacity = '1';
+  labelStrat.style.opacity = '1';
 }
 
 function updateHouseFromTimeline() {
@@ -666,6 +964,8 @@ function updateHouseFromTimeline() {
     }
   });
 
+  const savedAmount = Math.max(0, baseBal - stratBal);
+
   if (stratH > baseH + 0.3) {
     const midH = (baseH + stratH) / 2;
     gapBeam.position.set(0, midH, 0);
@@ -678,29 +978,27 @@ function updateHouseFromTimeline() {
     gapPillarR.scale.y = stratH - baseH;
     gapPillarR.visible = true;
 
-    const aheadYears = (stratPaid - basePaid) * state.years;
-    elAheadLabel.textContent = `${aheadYears.toFixed(1)}y ahead`;
-    gapLabel.textContent = `${aheadYears.toFixed(1)} years ahead`;
+    gapLabel.textContent = `${fmt$(savedAmount)} saved`;
+    elAheadLabel.textContent = `${fmt$(savedAmount)} saved`;
   } else {
     gapBeamMat.opacity = 0;
     gapPillarL.visible = false;
     gapPillarR.visible = false;
-    elAheadLabel.textContent = '';
+    gapLabel.textContent = '';
+    elAheadLabel.textContent = '$0 saved';
   }
 
-  document.getElementById('hlBaseSub').textContent = `Year ${currentYear.toFixed(1)} — ${Math.round(basePaid * 100)}%`;
-  document.getElementById('hlStratSub').textContent = `Year ${currentYear.toFixed(1)} — ${Math.round(stratPaid * 100)}%`;
+  document.getElementById('hlBaseSub').textContent = `Year ${currentYear.toFixed(1)} of ${state.years} — ${Math.round(basePaid * 100)}% paid`;
+  document.getElementById('hlStratSub').textContent = `Year ${currentYear.toFixed(1)} of ${state.years} — ${Math.round(stratPaid * 100)}% paid`;
   const stratLabelTitle = labelStrat.querySelector('.hl-title');
   if (state.strategy === 'extra') stratLabelTitle.textContent = `With extra ${fmt$(state.extra)}/mo`;
   else if (state.strategy === 'fortnightly') stratLabelTitle.textContent = 'With fortnightly payments';
   else if (state.strategy === 'refinance') stratLabelTitle.textContent = `With ${state.newRate}% rate`;
   else stratLabelTitle.textContent = 'With strategy';
 
+  const paidPct = Math.round(stratPaid * 100);
   elYearLabel.textContent = `Year ${currentYear.toFixed(1)} of ${state.years}`;
-  const phase = getPhase(stratH);
-  elPhaseLabel.textContent = phase.name;
-
-  updateMilestones(baseH, stratH);
+  updateMilestoneInfo();
 }
 
 
@@ -739,6 +1037,9 @@ function selectStrategy(strat) {
     const ns = document.getElementById('sliderExtra');
     const nv = document.getElementById('valExtra');
     ns.addEventListener('input', () => { nv.textContent = fmt$(ns.value); state.extra = Number(ns.value); updateCalculations(); });
+    // Refresh module references so updateCalculations stays in sync
+    elSliderExtra = ns;
+    elValExtra = nv;
   } else if (strat === 'fortnightly') {
     elStrategyControl.innerHTML = `
       <label>Fortnightly payments</label>
@@ -783,8 +1084,14 @@ function selectStrategy(strat) {
   updateCalculations();
 }
 
-elStrategyTiles.forEach(t => t.addEventListener('click', () => selectStrategy(t.dataset.strategy)));
-elMTiles.forEach(t => t.addEventListener('click', () => selectStrategy(t.dataset.strategy)));
+elStrategyTiles.forEach(t => t.addEventListener('click', (e) => {
+  e.stopPropagation();
+  selectStrategy(t.dataset.strategy);
+}));
+elMTiles.forEach(t => t.addEventListener('click', (e) => {
+  e.stopPropagation();
+  selectStrategy(t.dataset.strategy);
+}));
 
 elPrincipal.addEventListener('input', updateCalculations);
 elRate.addEventListener('input', updateCalculations);
@@ -800,7 +1107,9 @@ if (elSliderExtra) {
 elTimeline.addEventListener('input', () => {
   state.isPlaying = false;
   elPlayBtn.textContent = '▶';
+  state.timeline = Number(elTimeline.value);
   updateHouseFromTimeline();
+  updateMilestoneInfo();
 });
 
 elPlayBtn.addEventListener('click', () => {
@@ -814,6 +1123,46 @@ elPlayBtn.addEventListener('click', () => {
     if (Number(elTimeline.value) >= 100) elTimeline.value = 0;
   }
 });
+
+// Goal chips
+if (elGoalChips) {
+  elGoalChips.querySelectorAll('.goal-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      state.goalYears = chip.dataset.years === 'original' ? state.years : Number(chip.dataset.years);
+      updateGoalUI();
+    });
+  });
+}
+
+// Goal apply
+if (elGoalApply) {
+  elGoalApply.addEventListener('click', () => {
+    if (elGoalApply.disabled) return;
+    const { extraNeeded } = computeGoalPayment(state.goalYears);
+    if (extraNeeded <= 0) return;
+    state.extra = extraNeeded;
+    selectStrategy('extra');
+    updateMetrics();
+    showToast(`Goal applied: ${fmt$(extraNeeded)}/mo extra`);
+    // Collapse bottom sheet so the 3D houses are visible
+    sheetExpanded = false;
+    if (elBottomSheet) elBottomSheet.classList.remove('expanded');
+  });
+}
+
+// Goal flag click to jump
+if (elGoalFlag) {
+  elGoalFlag.addEventListener('click', () => {
+    if (state.goalYears >= state.years) return;
+    const timelineValue = (state.goalYears / state.years) * 100;
+    elTimeline.value = timelineValue;
+    state.timeline = timelineValue;
+    state.isPlaying = false;
+    elPlayBtn.textContent = '▶';
+    updateHouseFromTimeline();
+    updateMilestoneInfo();
+  });
+}
 
 let sheetExpanded = false;
 if (elSheetHandle) {
@@ -831,6 +1180,41 @@ if (elMobileMetricsToggle) {
 if (elCloseMobileMetrics) {
   elCloseMobileMetrics.addEventListener('click', () => {
     elMobileMetricsPanel.classList.remove('open');
+  });
+}
+
+if (elTableToggle) {
+  elTableToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    showDataModal();
+  });
+}
+
+if (elCloseDataModal) {
+  elCloseDataModal.addEventListener('click', closeDataModal);
+}
+
+elDataModal.addEventListener('click', (e) => {
+  if (e.target === elDataModal) closeDataModal();
+});
+
+// Graph widget collapse / expand
+if (elGraphToggle && elGraphWidget) {
+  elGraphToggle.addEventListener('click', () => {
+    const isCollapsed = elGraphWidget.classList.toggle('collapsed');
+    elGraphToggle.setAttribute('aria-expanded', String(!isCollapsed));
+    if (elGtIcon) elGtIcon.textContent = isCollapsed ? '▶' : '▼';
+    if (elGtLabel) elGtLabel.textContent = isCollapsed ? 'Show Timeline' : 'Hide Timeline';
+  });
+}
+
+// Goal widget collapse / expand
+if (elGoalToggle && elGoalWidget) {
+  elGoalToggle.addEventListener('click', () => {
+    const isCollapsed = elGoalWidget.classList.toggle('collapsed');
+    elGoalToggle.setAttribute('aria-expanded', String(!isCollapsed));
+    if (elGoalToggleIcon) elGoalToggleIcon.textContent = isCollapsed ? '▶' : '▼';
+    if (elGoalToggleLabel) elGoalToggleLabel.textContent = isCollapsed ? 'Show SMART Goal' : 'Hide SMART Goal';
   });
 }
 
@@ -886,6 +1270,7 @@ window.addEventListener('resize', () => {
 // ==================== INIT ====================
 
 function init() {
+  initMilestoneBar();
   updateCalculations();
   updateHouseFromTimeline();
 
