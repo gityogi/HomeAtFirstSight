@@ -1027,10 +1027,11 @@ function selectStrategy(strat) {
   });
 
   if (strat === 'extra') {
+    const maxExtra = Math.max(5000, Math.ceil((state.extra || 0) / 500) * 500);
     elStrategyControl.innerHTML = `
       <label>Extra payment per month</label>
       <div class="slider-wrap">
-        <input type="range" id="sliderExtra" min="0" max="5000" step="50" value="${state.extra}" />
+        <input type="range" id="sliderExtra" min="0" max="${maxExtra}" step="50" value="${state.extra}" />
         <span class="slider-val" id="valExtra">${fmt$(state.extra)}</span>
       </div>
     `;

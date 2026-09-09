@@ -443,6 +443,71 @@ body {
   border: 2px solid #0f172a;
 }
 
+#milestoneLabel {
+  font-size: 0.72rem;
+  color: #94a3b8;
+}
+
+/* Milestone bar */
+.milestone-track {
+  margin: 10px 0 14px;
+}
+.milestone-bar {
+  background: rgba(255,255,255,0.06);
+  border-radius: 8px;
+  padding: 4px;
+}
+.milestone-slots {
+  display: flex;
+  gap: 2px;
+}
+.milestone-slot {
+  flex: 1;
+  text-align: center;
+  padding: 6px 2px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  background: rgba(255,255,255,0.04);
+}
+.milestone-slot:hover {
+  background: rgba(255,255,255,0.08);
+}
+.milestone-slot span {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #94a3b8;
+  position: relative;
+  z-index: 1;
+  transition: color 0.2s ease;
+}
+.milestone-slot-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 100%;
+  width: 0%;
+  background: rgba(0, 212, 255, 0.18);
+  border-radius: 6px;
+  transition: width 0.3s ease;
+  z-index: 0;
+}
+.milestone-slot.passed span {
+  color: #34d399;
+}
+.milestone-slot.passed .milestone-slot-fill {
+  background: rgba(52, 211, 153, 0.22);
+}
+.milestone-slot.active span {
+  color: #00d4ff;
+}
+.milestone-slot.active .milestone-slot-fill {
+  background: rgba(0, 212, 255, 0.35);
+}
+
 /* ===== MOBILE METRICS ===== */
 .mobile-metrics-toggle {
   display: none;
@@ -553,7 +618,7 @@ body {
   .mobile-metrics-toggle { display: flex; align-items: center; justify-content: center; }
   .mobile-metrics-panel { display: block; }
   .loan-inputs { grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .milestone span { font-size: 0.55rem; }
+  .milestone-slot span { font-size: 0.55rem; }
   .ahead-label { font-size: 0.7rem; }
 }
 
